@@ -2,6 +2,8 @@
 
 Стартовый проект корпоративного сайта на `React + Vite + TypeScript` без собственного backend и без отдельной БД на старте.
 
+Пакетный менеджер проекта: `yarn`.
+
 ## Что внутри
 
 - `React SPA` на `Vite`
@@ -51,8 +53,8 @@
 ## Запуск
 
 ```bash
-npm install
-npm run dev
+yarn install
+yarn dev
 ```
 
 ## Переменные окружения

@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "yarn@1.22.22",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -17,8 +18,8 @@
   "devDependencies": {
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^5.1.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.9.3",
-    "vite": "^7.1.7"
+    "vite": "^5.4.19"
   }
 }
