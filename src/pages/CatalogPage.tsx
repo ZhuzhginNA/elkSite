@@ -9,6 +9,7 @@ export function CatalogPage() {
       <section className="content-panel">
         <div className="section-head section-head--center">
           <h1 className="section-title">Каталог</h1>
+          <p className="section-lead">Раздел будет наполняться отдельно через интеграцию с внешней системой каталога.</p>
         </div>
 
         {isLoading ? <ContentState>Загружаем каталог...</ContentState> : null}

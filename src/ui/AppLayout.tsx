@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { AppFooter } from "./AppFooter";
 
 const navigation = [
   { to: "/", label: "Главная", end: true },
@@ -18,7 +19,7 @@ export function AppLayout() {
         <div className="topbar__line" />
         <div className="topbar__inner">
           <div className="brand-wrap">
-            <div className="brand">ООО «ЭЛК»</div>
+            <img className="brand-logo" src="/legacy/img/logo.png" alt="ООО ЭЛК" />
             <div className="brand-subtitle">Промышленная электроника на транспорте</div>
           </div>
 
@@ -42,6 +43,10 @@ export function AppLayout() {
       <main className="page">
         <Outlet />
       </main>
+
+      <div className="page">
+        <AppFooter />
+      </div>
     </div>
   );
 }

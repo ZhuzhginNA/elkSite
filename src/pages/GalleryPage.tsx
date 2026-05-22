@@ -17,10 +17,15 @@ export function GalleryPage() {
         {!isLoading && !isError ? (
           <div className="gallery-grid">
             {data?.map((item) => (
-              <figure key={item.id} className="gallery-card">
+              <a
+                key={item.id}
+                className="gallery-card"
+                href={item.fullImageUrl ?? item.imageUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <img src={item.imageUrl} alt={item.title} />
-                <figcaption>{item.title}</figcaption>
-              </figure>
+              </a>
             ))}
           </div>
         ) : null}

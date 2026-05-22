@@ -8,8 +8,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --panel: rgba(255, 255, 255, 0.94);
-  --panel-dark: rgba(19, 22, 31, 0.82);
+  --panel: rgba(255, 255, 255, 0.95);
+  --panel-dark: rgba(20, 22, 30, 0.84);
   --nav: rgba(47, 57, 73, 0.72);
   --nav-border: rgba(255, 255, 255, 0.14);
   --accent: #35577f;
@@ -40,6 +40,10 @@ button {
   font: inherit;
 }
 
+img {
+  max-width: 100%;
+}
+
 #root {
   min-height: 100vh;
 }
@@ -53,10 +57,8 @@ button {
   position: fixed;
   inset: 0;
   background:
-    linear-gradient(rgba(10, 12, 16, 0.32), rgba(10, 12, 16, 0.42)),
-    url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80")
-      center / cover no-repeat;
-  filter: saturate(0.9);
+    linear-gradient(rgba(10, 12, 16, 0.35), rgba(10, 12, 16, 0.45)),
+    url("/legacy/img/background/bg1.jpg") center / cover no-repeat;
   z-index: 0;
 }
 
@@ -95,15 +97,15 @@ button {
   letter-spacing: 0.18em;
 }
 
-.brand {
-  font-size: clamp(2rem, 3vw, 3rem);
-  line-height: 1;
+.brand-logo {
+  width: min(100%, 310px);
+  display: block;
 }
 
 .brand-subtitle {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 0.28em;
-  opacity: 0.9;
+  opacity: 0.92;
   margin-top: 4px;
 }
 
@@ -180,9 +182,25 @@ button {
   margin: 12px 0 0;
 }
 
+.hero-slider {
+  margin: -26px -36px 26px;
+}
+
+.hero-slider img,
+.page-hero-image img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.page-hero-image {
+  margin-bottom: 24px;
+}
+
 .feature-grid,
 .contacts-grid,
-.gallery-grid {
+.gallery-grid,
+.home-card-grid {
   display: grid;
   gap: 20px;
 }
@@ -208,12 +226,50 @@ button {
   background: linear-gradient(135deg, var(--accent-soft), var(--accent));
 }
 
-.home-copy {
+.home-card-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 28px;
+}
+
+.home-card {
+  background: #6f8cad;
+  color: #fff;
+  overflow: hidden;
+}
+
+.home-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.home-card__content {
+  padding: 18px;
+}
+
+.home-card__content h2 {
+  margin: 0 0 10px;
+  font-size: 1.3rem;
+}
+
+.home-card__content p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.page-copy {
   color: var(--text-soft);
   display: grid;
   gap: 12px;
 }
 
+.page-copy--center {
+  text-align: center;
+}
+
+.bullet-list,
 .list-table,
 .stack-list,
 .blog-list {
@@ -221,11 +277,18 @@ button {
   gap: 14px;
 }
 
+.bullet-item,
 .list-row,
 .document-card,
 .panel-card,
 .blog-card {
   border: 1px solid var(--border);
+}
+
+.bullet-item {
+  padding: 14px 16px;
+  background: rgba(53, 87, 127, 0.06);
+  color: var(--text-soft);
 }
 
 .list-row {
@@ -260,10 +323,6 @@ button {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
-.gallery-card {
-  margin: 0;
-}
-
 .gallery-card img,
 .blog-card img,
 .contact-image {
@@ -276,16 +335,23 @@ button {
   aspect-ratio: 4 / 3;
 }
 
-.gallery-card figcaption {
-  margin-top: 8px;
-  color: var(--text-soft);
-  font-size: 0.95rem;
-}
-
 .document-card,
 .panel-card {
   padding: 16px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.document-card__layout {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.document-card__preview img {
+  width: 100%;
+  display: block;
+  border: 1px solid var(--border);
 }
 
 .document-card__tag {
@@ -314,7 +380,7 @@ button {
 .blog-card {
   display: grid;
   grid-template-columns: 220px 1fr;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .blog-card img {
@@ -331,6 +397,25 @@ button {
   font-size: 0.9rem;
 }
 
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-list--spaced {
+  margin-bottom: 20px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: rgba(53, 87, 127, 0.08);
+}
+
 .contacts-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -341,10 +426,15 @@ button {
 }
 
 .footer-panel {
+  max-height: 300px;
   margin-top: 28px;
   padding: 22px 28px;
   background: var(--panel-dark);
   color: rgba(255, 255, 255, 0.88);
+}
+
+.footer-panel--global {
+  margin-top: 0;
 }
 
 .footer-panel__grid {
@@ -354,11 +444,17 @@ button {
   align-items: center;
 }
 
-.footer-panel__brand {
-  font-size: 3rem;
-  text-align: center;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.footer-panel__brand img {
+  width: 160px;
+  display: block;
+  margin-left: auto;
+}
+
+.footer-admin-link {
+  display: inline-flex;
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: underline;
 }
 
 .state {
@@ -373,6 +469,78 @@ button {
   color: var(--warning);
 }
 
+.admin-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.action-button--ghost {
+  background: rgba(53, 87, 127, 0.12);
+  color: var(--accent);
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.admin-card {
+  padding: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.admin-card h2 {
+  margin: 0 0 14px;
+  color: var(--accent);
+}
+
+.admin-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-subcard {
+  padding: 14px;
+  border: 1px solid rgba(53, 87, 127, 0.14);
+  background: rgba(53, 87, 127, 0.04);
+}
+
+.admin-subcard--row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-field span {
+  font-size: 0.92rem;
+  color: var(--accent);
+}
+
+.admin-field input,
+.admin-field textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  font: inherit;
+  color: #22344d;
+  background: rgba(255, 255, 255, 0.92);
+}
+
 @media (max-width: 720px) {
   .topbar__inner,
   .page {
@@ -383,10 +551,18 @@ button {
     padding: 20px;
   }
 
+  .hero-slider {
+    margin: -20px -20px 20px;
+  }
+
   .feature-grid,
   .contacts-grid,
   .footer-panel__grid,
-  .blog-card {
+  .blog-card,
+  .home-card-grid,
+  .document-card__layout,
+  .admin-grid,
+  .admin-subcard--row {
     grid-template-columns: 1fr;
   }
 }

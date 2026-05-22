@@ -1,19 +1,55 @@
 import { appConfig } from "../../shared/config";
 import { httpGet } from "../../shared/http";
-import {
-  mockBlogPosts,
-  mockCmsPages,
-  mockContacts,
-  mockDocuments,
-  mockGalleryImages,
-} from "../../shared/mockData";
+import { createDefaultCmsContent } from "../../shared/mockData";
 import type {
-  BlogPostPreview,
+  BlogPost,
+  CmsContent,
   CmsPage,
   ContactInfo,
   DocumentItem,
   GalleryImage,
 } from "../../shared/types";
+
+const CMS_STORAGE_KEY = "elk-site-cms-content";
+
+function cloneContent(content: CmsContent): CmsContent {
+  return JSON.parse(JSON.stringify(content)) as CmsContent;
+}
+
+function readLocalContent(): CmsContent {
+  const fallback = createDefaultCmsContent();
+
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  const raw = window.localStorage.getItem(CMS_STORAGE_KEY);
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw) as CmsContent;
+  } catch {
+    return fallback;
+  }
+}
+
+export function saveLocalContent(content: CmsContent) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(content));
+}
+
+export function resetLocalContent() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(CMS_STORAGE_KEY);
+}
 
 function normalizePageResponse(payload: unknown, slug: string): CmsPage | null {
   if (typeof payload === "object" && payload !== null && "slug" in payload) {
@@ -45,9 +81,17 @@ function normalizePageResponse(payload: unknown, slug: string): CmsPage | null {
   return null;
 }
 
+export async function fetchCmsContent(): Promise<CmsContent> {
+  if (!appConfig.cmsApiBase) {
+    return cloneContent(readLocalContent());
+  }
+
+  return httpGet<CmsContent>(`${appConfig.cmsApiBase}/content`);
+}
+
 export async function fetchCmsPage(slug: string): Promise<CmsPage | null> {
   if (!appConfig.cmsApiBase) {
-    return mockCmsPages[slug] ?? null;
+    return cloneContent(readLocalContent()).pages[slug] ?? null;
   }
 
   const payload = await httpGet<unknown>(`${appConfig.cmsApiBase}/pages/${slug}`);
@@ -56,7 +100,7 @@ export async function fetchCmsPage(slug: string): Promise<CmsPage | null> {
 
 export async function fetchGalleryImages(): Promise<GalleryImage[]> {
   if (!appConfig.cmsApiBase) {
-    return mockGalleryImages;
+    return cloneContent(readLocalContent()).galleryImages;
   }
 
   return httpGet<GalleryImage[]>(`${appConfig.cmsApiBase}/gallery`);
@@ -64,23 +108,23 @@ export async function fetchGalleryImages(): Promise<GalleryImage[]> {
 
 export async function fetchDocuments(): Promise<DocumentItem[]> {
   if (!appConfig.cmsApiBase) {
-    return mockDocuments;
+    return cloneContent(readLocalContent()).documents;
   }
 
   return httpGet<DocumentItem[]>(`${appConfig.cmsApiBase}/documents`);
 }
 
-export async function fetchBlogPosts(): Promise<BlogPostPreview[]> {
+export async function fetchBlogPosts(): Promise<BlogPost[]> {
   if (!appConfig.cmsApiBase) {
-    return mockBlogPosts;
+    return cloneContent(readLocalContent()).blogPosts;
   }
 
-  return httpGet<BlogPostPreview[]>(`${appConfig.cmsApiBase}/blog`);
+  return httpGet<BlogPost[]>(`${appConfig.cmsApiBase}/blog`);
 }
 
 export async function fetchContacts(): Promise<ContactInfo> {
   if (!appConfig.cmsApiBase) {
-    return mockContacts;
+    return cloneContent(readLocalContent()).contacts;
   }
 
   return httpGet<ContactInfo>(`${appConfig.cmsApiBase}/contacts`);

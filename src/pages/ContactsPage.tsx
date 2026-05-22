@@ -7,39 +7,32 @@ export function ContactsPage() {
   return (
     <div className="content-shell">
       <section className="content-panel">
+        <div className="section-head">
+          <h1 className="section-title">Контакты</h1>
+          <p className="section-lead">
+            Карта, вид с улицы и контактные данные компании. Основной контактный блок также выводится в подвале сайта.
+          </p>
+        </div>
+
         <div className="contacts-grid">
           <article className="panel-card">
             <h2>Карта</h2>
-            {data ? <img src={data.mapImageUrl} alt="Карта офиса" className="contact-image" /> : null}
+            {data ? (
+              <a href={data.mapFullImageUrl ?? data.mapImageUrl} target="_blank" rel="noreferrer">
+                <img src={data.mapImageUrl} alt="Карта офиса" className="contact-image" />
+              </a>
+            ) : null}
           </article>
           <article className="panel-card">
             <h2>Вид с улицы</h2>
-            {data ? <img src={data.officeImageUrl} alt="Офис компании" className="contact-image" /> : null}
+            {data ? (
+              <a href={data.officeFullImageUrl ?? data.officeImageUrl} target="_blank" rel="noreferrer">
+                <img src={data.officeImageUrl} alt="Офис компании" className="contact-image" />
+              </a>
+            ) : null}
           </article>
         </div>
       </section>
-
-      <footer className="footer-panel">
-        {isLoading ? <ContentState>Загружаем контакты...</ContentState> : null}
-        {isError ? <ContentState error>Не удалось загрузить контакты: {error.message}</ContentState> : null}
-
-        {!isLoading && !isError && data ? (
-          <div className="footer-panel__grid">
-            <div>
-              <h3>Контактная информация</h3>
-              {data.phones.map((phone) => (
-                <p key={phone}>{phone}</p>
-              ))}
-              <p>{data.email}</p>
-            </div>
-            <div>
-              <h3>Адрес</h3>
-              <p>{data.address}</p>
-            </div>
-            <div className="footer-panel__brand">ЭЛК</div>
-          </div>
-        ) : null}
-      </footer>
     </div>
   );
 }

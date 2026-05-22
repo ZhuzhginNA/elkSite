@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useBlogPosts } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
 
@@ -9,7 +10,7 @@ export function BlogPage() {
       <section className="content-panel">
         <div className="section-head">
           <h1 className="section-title">Блог</h1>
-          <p className="section-lead">Новости и статьи почти всегда удобнее вести через CMS, а не через ручные правки в репозитории.</p>
+          <p className="section-lead">Материалы о новых разработках, тестовом оборудовании и прикладных решениях компании.</p>
         </div>
 
         {isLoading ? <ContentState>Загружаем блог...</ContentState> : null}
@@ -24,9 +25,16 @@ export function BlogPage() {
                   <h3>{post.title}</h3>
                   <p className="blog-card__meta">{post.publishedAt}</p>
                   <p>{post.excerpt}</p>
-                  <button type="button" className="action-button">
+                  <div className="tag-list">
+                    {post.tags.map((tag) => (
+                      <span key={tag} className="tag">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <Link to={`/blog/${post.slug}`} className="action-button">
                     Подробнее
-                  </button>
+                  </Link>
                 </div>
               </article>
             ))}
