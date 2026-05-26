@@ -2,6 +2,7 @@ import type {
   BlogPost,
   CatalogItem,
   CmsContent,
+  GalleryImage,
   HomeCard,
 } from "./types";
 
@@ -99,6 +100,17 @@ const blogPosts: BlogPost[] = [
   },
 ];
 
+const galleryImages: GalleryImage[] = Array.from({ length: 33 }, (_, index) => {
+  const imageNumber = index + 1;
+
+  return {
+    id: `g${imageNumber}`,
+    title: `Фотография ${imageNumber}`,
+    imageUrl: `/legacy/img/gallery/image${imageNumber}.jpg`,
+    fullImageUrl: `/legacy/img/gallery/image${imageNumber}-big.jpg`,
+  };
+});
+
 export function createDefaultCmsContent(): CmsContent {
   return {
     pages: {
@@ -195,20 +207,7 @@ export function createDefaultCmsContent(): CmsContent {
     },
     homeFeatures,
     homeCards,
-    galleryImages: [
-      { id: "g1", title: "Галерея 1", imageUrl: "/legacy/img/gallery/image1.jpg", fullImageUrl: "/legacy/img/gallery/image1-big.jpg" },
-      { id: "g2", title: "Галерея 2", imageUrl: "/legacy/img/gallery/image2.jpg", fullImageUrl: "/legacy/img/gallery/image2-big.jpg" },
-      { id: "g3", title: "Галерея 3", imageUrl: "/legacy/img/gallery/image3.jpg", fullImageUrl: "/legacy/img/gallery/image3-big.jpg" },
-      { id: "g4", title: "Галерея 4", imageUrl: "/legacy/img/gallery/image4.jpg", fullImageUrl: "/legacy/img/gallery/image4-big.jpg" },
-      { id: "g5", title: "Галерея 5", imageUrl: "/legacy/img/gallery/image5.jpg", fullImageUrl: "/legacy/img/gallery/image5-big.jpg" },
-      { id: "g6", title: "Галерея 6", imageUrl: "/legacy/img/gallery/image6.jpg", fullImageUrl: "/legacy/img/gallery/image6-big.jpg" },
-      { id: "g7", title: "Галерея 7", imageUrl: "/legacy/img/gallery/image7.jpg", fullImageUrl: "/legacy/img/gallery/image7-big.jpg" },
-      { id: "g8", title: "Галерея 8", imageUrl: "/legacy/img/gallery/image8.jpg", fullImageUrl: "/legacy/img/gallery/image8-big.jpg" },
-      { id: "g9", title: "Галерея 9", imageUrl: "/legacy/img/gallery/image9.jpg", fullImageUrl: "/legacy/img/gallery/image9-big.jpg" },
-      { id: "g10", title: "Галерея 10", imageUrl: "/legacy/img/gallery/image10.jpg", fullImageUrl: "/legacy/img/gallery/image10-big.jpg" },
-      { id: "g11", title: "Галерея 11", imageUrl: "/legacy/img/gallery/image11.jpg", fullImageUrl: "/legacy/img/gallery/image11-big.jpg" },
-      { id: "g12", title: "Галерея 12", imageUrl: "/legacy/img/gallery/image12.jpg", fullImageUrl: "/legacy/img/gallery/image12-big.jpg" },
-    ],
+    galleryImages,
     documents: [
       {
         id: "doc-1",
@@ -293,6 +292,10 @@ export function createDefaultCmsContent(): CmsContent {
       ],
       email: "mail@new.elk.com.ru",
       address: "170001, Россия, Тверь, улица Двор Пролетарки, дом 19, помещение III",
+      mapEmbedUrl:
+        "https://yandex.ru/map-widget/v1/?ll=35.866032%2C56.852814&pt=35.866110%2C56.852896&z=18",
+      mapExternalUrl: "https://yandex.ru/maps/?ll=35.866032%2C56.852814&pt=35.866110%2C56.852896&z=18",
+      routeUrl: "https://yandex.ru/maps/?rtext=~56.852896%2C35.866110&rtt=auto",
       mapImageUrl: "/legacy/img/map/map.jpg",
       mapFullImageUrl: "/legacy/img/map/map-big.jpg",
       officeImageUrl: "/legacy/img/map/street.jpg",

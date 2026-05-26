@@ -64,9 +64,12 @@ export interface ContactInfo {
   phones: ContactPhone[];
   email: string;
   address: string;
-  mapImageUrl: string;
+  mapEmbedUrl?: string;
+  mapExternalUrl?: string;
+  routeUrl?: string;
+  mapImageUrl?: string;
   mapFullImageUrl?: string;
-  officeImageUrl: string;
+  officeImageUrl?: string;
   officeFullImageUrl?: string;
 }
 

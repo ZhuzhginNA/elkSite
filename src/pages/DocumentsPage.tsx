@@ -22,7 +22,7 @@ export function DocumentsPage() {
                 <div className="document-card__layout">
                   {item.previewUrl ? (
                     <a href={item.fileUrl} target="_blank" rel="noreferrer" className="document-card__preview">
-                      <img src={item.previewUrl} alt={item.title} />
+                      <img src={item.previewUrl} alt={item.title} loading="lazy" decoding="async" />
                     </a>
                   ) : null}
                   <div>

@@ -29,7 +29,17 @@ function readLocalContent(): CmsContent {
   }
 
   try {
-    return JSON.parse(raw) as CmsContent;
+    const parsed = JSON.parse(raw) as CmsContent;
+
+    // Keep older local snapshots usable while backfilling new legacy gallery images.
+    if (!Array.isArray(parsed.galleryImages) || parsed.galleryImages.length < fallback.galleryImages.length) {
+      return {
+        ...parsed,
+        galleryImages: fallback.galleryImages,
+      };
+    }
+
+    return parsed;
   } catch {
     return fallback;
   }

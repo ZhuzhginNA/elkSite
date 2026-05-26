@@ -510,6 +510,46 @@ export function AdminPage() {
                   }
                 />
               </label>
+
+              <label className="admin-field">
+                <span>Ссылка для embed карты</span>
+                <input
+                  value={draft.contacts.mapEmbedUrl ?? ""}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, contacts: { ...current.contacts, mapEmbedUrl: event.target.value } }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+
+              <label className="admin-field">
+                <span>Ссылка на Яндекс Карты</span>
+                <input
+                  value={draft.contacts.mapExternalUrl ?? ""}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, contacts: { ...current.contacts, mapExternalUrl: event.target.value } }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+
+              <label className="admin-field">
+                <span>Ссылка на маршрут</span>
+                <input
+                  value={draft.contacts.routeUrl ?? ""}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current ? { ...current, contacts: { ...current.contacts, routeUrl: event.target.value } } : current,
+                    )
+                  }
+                />
+              </label>
             </div>
           </article>
         </div>

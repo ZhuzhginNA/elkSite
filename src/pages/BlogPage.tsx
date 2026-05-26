@@ -20,7 +20,7 @@ export function BlogPage() {
           <div className="blog-list">
             {data?.map((post) => (
               <article key={post.id} className="blog-card">
-                <img src={post.imageUrl} alt={post.title} />
+                <img src={post.imageUrl} alt={post.title} loading="lazy" decoding="async" />
                 <div className="blog-card__content">
                   <h3>{post.title}</h3>
                   <p className="blog-card__meta">{post.publishedAt}</p>
