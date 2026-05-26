@@ -7,9 +7,9 @@ export function CatalogPage() {
   return (
     <div className="content-shell">
       <section className="content-panel">
-        <div className="section-head section-head--center">
+        <div className="section-head">
           <h1 className="section-title">Каталог</h1>
-          <p className="section-lead">Раздел будет наполняться отдельно через интеграцию с внешней системой каталога.</p>
+          <p className="section-lead">Список устройств и их краткое описание</p>
         </div>
 
         {isLoading ? <ContentState>Загружаем каталог...</ContentState> : null}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useGalleryImages } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
 
@@ -9,6 +9,9 @@ export function GalleryPage() {
   const { data, isLoading, isError, error } = useGalleryImages();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const lightboxRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   const images = data ?? [];
   const totalPages = Math.max(1, Math.ceil(images.length / GALLERY_PAGE_SIZE));
@@ -48,6 +51,7 @@ export function GalleryPage() {
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -67,6 +71,33 @@ export function GalleryPage() {
           return current === images.length - 1 ? 0 : current + 1;
         });
       }
+
+      if (event.key === "Tab") {
+        const focusRoot = lightboxRef.current;
+        if (!focusRoot) return;
+
+        const focusableElements = Array.from(
+          focusRoot.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((element) => !element.hasAttribute("hidden"));
+
+        if (!focusableElements.length) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        const activeElement = document.activeElement as HTMLElement | null;
+
+        if (!event.shiftKey && activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+
+        if (event.shiftKey && activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+      }
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -74,6 +105,7 @@ export function GalleryPage() {
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
+      returnFocusRef.current?.focus();
     };
   }, [activeIndex, images.length]);
 
@@ -94,9 +126,9 @@ export function GalleryPage() {
   return (
     <div className="content-shell">
       <section className="content-panel">
-        <div className="section-head section-head--center">
+        <div className="section-head">
           <h1 className="section-title">Галерея ООО «ЭЛК»</h1>
-          <p className="section-lead section-lead--center">
+          <p className="section-lead">
             Фотографии производственных процессов, рабочих зон и ключевых этапов выполнения заказов.
           </p>
         </div>
@@ -115,7 +147,10 @@ export function GalleryPage() {
                     key={item.id}
                     type="button"
                     className="gallery-card"
-                    onClick={() => setActiveIndex(realIndex)}
+                    onClick={(event) => {
+                      returnFocusRef.current = event.currentTarget;
+                      setActiveIndex(realIndex);
+                    }}
                     aria-label={`Открыть изображение: ${item.title}`}
                   >
                     <img src={item.imageUrl} alt={item.title} loading="lazy" decoding="async" />
@@ -151,8 +186,14 @@ export function GalleryPage() {
       {activeImage ? (
         <div className="lightbox" role="dialog" aria-modal="true" aria-label="Просмотр фотографии" onClick={() => setActiveIndex(null)}>
           <div className="lightbox__backdrop" />
-          <div className="lightbox__content" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="lightbox__close" onClick={() => setActiveIndex(null)} aria-label="Закрыть просмотр">
+          <div ref={lightboxRef} className="lightbox__content" onClick={(event) => event.stopPropagation()}>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              className="lightbox__close"
+              onClick={() => setActiveIndex(null)}
+              aria-label="Закрыть просмотр"
+            >
               ×
             </button>
 

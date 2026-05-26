@@ -19,6 +19,9 @@ export function ContactsPage() {
       <section className="content-panel">
         <div className="section-head">
           <h1 className="section-title">Контакты</h1>
+          <p className="section-lead">
+            Основные телефоны, почта и карта офиса.
+          </p>
         </div>
 
         {isLoading ? <ContentState>Загружаем контакты...</ContentState> : null}
@@ -82,6 +85,7 @@ export function ContactsPage() {
                     </a>
                   </div>
 
+                  
                 </aside>
               </div>
             </article>

@@ -6,3 +6,5 @@ dist
 .env.*.local
 legacy_snapshot
 .agents
+.tools
+Caddyfile

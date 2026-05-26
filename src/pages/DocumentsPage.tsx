@@ -9,7 +9,7 @@ export function DocumentsPage() {
       <section className="content-panel">
         <div className="section-head">
           <h1 className="section-title">Документы</h1>
-          <p className="section-lead">Сертификаты, реквизиты и прочие документы компании, перенесенные со старого сайта.</p>
+          <p className="section-lead">Сертификаты, реквизиты и прочие документы компании.</p>
         </div>
 
         {isLoading ? <ContentState>Загружаем документы...</ContentState> : null}
