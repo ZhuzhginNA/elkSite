@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: elk_site_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: elk_site
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "55432:5432"
+    volumes:
+      - elk_site_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  elk_site_postgres_data:

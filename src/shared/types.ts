@@ -6,6 +6,54 @@ export interface CatalogItem {
   category: string;
 }
 
+export interface CatalogSettings {
+  hiddenLevel1: string[];
+  hiddenLevel2: string[];
+}
+
+export interface CatalogCategory {
+  id: string;
+  value: string;
+  label: string;
+  level: 1 | 2;
+  parentId?: string;
+  children?: CatalogCategory[];
+}
+
+export interface CatalogDocument {
+  id: string;
+  title: string;
+  downloadUrl: string;
+}
+
+export interface CatalogRelation {
+  id: string;
+  title: string;
+  available: boolean;
+  disabledReason?: string;
+}
+
+export interface CatalogCardSummary {
+  id: string;
+  title: string;
+  code?: string;
+  categoryId: string;
+}
+
+export interface CatalogCardImage {
+  url: string;
+  title: string;
+  filename?: string;
+}
+
+export interface CatalogCardDetails {
+  id: string;
+  title: string;
+  comment?: string;
+  documents: CatalogDocument[];
+  zamParts: CatalogRelation[];
+}
+
 export interface SeoMeta {
   title: string;
   description: string;
@@ -71,6 +119,16 @@ export interface ContactInfo {
   mapFullImageUrl?: string;
   officeImageUrl?: string;
   officeFullImageUrl?: string;
+}
+
+export interface MediaAsset {
+  id: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  createdAt: string;
 }
 
 export interface CmsContent {

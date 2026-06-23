@@ -1,5 +1,5 @@
 import { appConfig } from "../../shared/config";
-import { httpGet } from "../../shared/http";
+import { httpDelete, httpGet, httpPost, httpPut } from "../../shared/http";
 import { createDefaultCmsContent } from "../../shared/mockData";
 import type {
   BlogPost,
@@ -8,9 +8,11 @@ import type {
   ContactInfo,
   DocumentItem,
   GalleryImage,
+  MediaAsset,
 } from "../../shared/types";
 
 const CMS_STORAGE_KEY = "elk-site-cms-content";
+const LOCAL_ADMIN_KEY = "elk-site-local-admin";
 
 function cloneContent(content: CmsContent): CmsContent {
   return JSON.parse(JSON.stringify(content)) as CmsContent;
@@ -99,13 +101,20 @@ export async function fetchCmsContent(): Promise<CmsContent> {
   return httpGet<CmsContent>(`${appConfig.cmsApiBase}/content`);
 }
 
+export async function fetchAdminContent(): Promise<CmsContent> {
+  if (!appConfig.cmsApiBase) {
+    return cloneContent(readLocalContent());
+  }
+
+  return httpGet<CmsContent>(`${appConfig.cmsApiBase}/admin/content`);
+}
+
 export async function fetchCmsPage(slug: string): Promise<CmsPage | null> {
   if (!appConfig.cmsApiBase) {
     return cloneContent(readLocalContent()).pages[slug] ?? null;
   }
 
-  const payload = await httpGet<unknown>(`${appConfig.cmsApiBase}/pages/${slug}`);
-  return normalizePageResponse(payload, slug);
+  return (await fetchCmsContent()).pages[slug] ?? null;
 }
 
 export async function fetchGalleryImages(): Promise<GalleryImage[]> {
@@ -113,7 +122,7 @@ export async function fetchGalleryImages(): Promise<GalleryImage[]> {
     return cloneContent(readLocalContent()).galleryImages;
   }
 
-  return httpGet<GalleryImage[]>(`${appConfig.cmsApiBase}/gallery`);
+  return (await fetchCmsContent()).galleryImages;
 }
 
 export async function fetchDocuments(): Promise<DocumentItem[]> {
@@ -121,7 +130,7 @@ export async function fetchDocuments(): Promise<DocumentItem[]> {
     return cloneContent(readLocalContent()).documents;
   }
 
-  return httpGet<DocumentItem[]>(`${appConfig.cmsApiBase}/documents`);
+  return (await fetchCmsContent()).documents;
 }
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
@@ -129,7 +138,7 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
     return cloneContent(readLocalContent()).blogPosts;
   }
 
-  return httpGet<BlogPost[]>(`${appConfig.cmsApiBase}/blog`);
+  return (await fetchCmsContent()).blogPosts;
 }
 
 export async function fetchContacts(): Promise<ContactInfo> {
@@ -137,5 +146,203 @@ export async function fetchContacts(): Promise<ContactInfo> {
     return cloneContent(readLocalContent()).contacts;
   }
 
-  return httpGet<ContactInfo>(`${appConfig.cmsApiBase}/contacts`);
+  return (await fetchCmsContent()).contacts;
+}
+
+export async function loginAdmin(credentials: { login: string; password: string }) {
+  if (!appConfig.cmsApiBase) {
+    window.localStorage.setItem(LOCAL_ADMIN_KEY, credentials.login || "admin");
+    return { login: credentials.login || "admin", role: "LOCAL_ADMIN" };
+  }
+
+  return httpPost<{ id: string; login: string; role: string }>(`${appConfig.cmsApiBase}/auth/login`, credentials);
+}
+
+export async function fetchAdminMe() {
+  if (!appConfig.cmsApiBase) {
+    const login = window.localStorage.getItem(LOCAL_ADMIN_KEY);
+    return login ? { login, role: "LOCAL_ADMIN" } : null;
+  }
+
+  return httpGet<{ sub: string; login: string; role: string }>(`${appConfig.cmsApiBase}/auth/me`);
+}
+
+export async function logoutAdmin() {
+  if (!appConfig.cmsApiBase) {
+    window.localStorage.removeItem(LOCAL_ADMIN_KEY);
+    return { ok: true };
+  }
+
+  return httpPost<{ ok: boolean }>(`${appConfig.cmsApiBase}/auth/logout`);
+}
+
+export async function savePageDraft(slug: string, page: CmsPage, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return page;
+  }
+
+  return httpPut(`${appConfig.cmsApiBase}/admin/pages/${slug}/draft`, page);
+}
+
+export async function publishPage(slug: string) {
+  if (!appConfig.cmsApiBase) return { ok: true };
+  return httpPost(`${appConfig.cmsApiBase}/admin/pages/${slug}/publish`);
+}
+
+export async function saveHomeDraft(payload: Pick<CmsContent, "homeFeatures" | "homeCards">, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return payload;
+  }
+
+  return httpPut(`${appConfig.cmsApiBase}/admin/home/draft`, payload);
+}
+
+export async function publishHome() {
+  if (!appConfig.cmsApiBase) return { ok: true };
+  return httpPost(`${appConfig.cmsApiBase}/admin/home/publish`);
+}
+
+export async function saveBlogDraft(id: string, post: BlogPost, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return post;
+  }
+
+  return httpPut(`${appConfig.cmsApiBase}/admin/blog/${id}/draft`, post);
+}
+
+export async function publishBlog(id: string) {
+  if (!appConfig.cmsApiBase) return { ok: true };
+  return httpPost(`${appConfig.cmsApiBase}/admin/blog/${id}/publish`);
+}
+
+export async function createBlog(post: BlogPost, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return post;
+  }
+
+  return httpPost(`${appConfig.cmsApiBase}/admin/blog`, post);
+}
+
+export async function deleteBlog(id: string, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return { ok: true };
+  }
+
+  return httpDelete(`${appConfig.cmsApiBase}/admin/blog/${id}`);
+}
+
+export async function saveGalleryImage(id: string, image: GalleryImage, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return image;
+  }
+
+  return httpPut(`${appConfig.cmsApiBase}/admin/gallery/${id}`, image);
+}
+
+export async function publishGalleryImage(id: string) {
+  if (!appConfig.cmsApiBase) return { ok: true };
+  return httpPost(`${appConfig.cmsApiBase}/admin/gallery/${id}/publish`);
+}
+
+export async function createGalleryImage(image: GalleryImage, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return image;
+  }
+
+  return httpPost(`${appConfig.cmsApiBase}/admin/gallery`, image);
+}
+
+export async function deleteGalleryImage(id: string, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return { ok: true };
+  }
+
+  return httpDelete(`${appConfig.cmsApiBase}/admin/gallery/${id}`);
+}
+
+export async function reorderGalleryImages(ids: string[], fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return { ok: true };
+  }
+
+  return httpPut(`${appConfig.cmsApiBase}/admin/gallery/order`, { ids });
+}
+
+export async function saveDocumentItem(id: string, document: DocumentItem, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return document;
+  }
+
+  return httpPut(`${appConfig.cmsApiBase}/admin/documents/${id}`, document);
+}
+
+export async function publishDocumentItem(id: string) {
+  if (!appConfig.cmsApiBase) return { ok: true };
+  return httpPost(`${appConfig.cmsApiBase}/admin/documents/${id}/publish`);
+}
+
+export async function createDocumentItem(document: DocumentItem, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return document;
+  }
+
+  return httpPost(`${appConfig.cmsApiBase}/admin/documents`, document);
+}
+
+export async function deleteDocumentItem(id: string, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return { ok: true };
+  }
+
+  return httpDelete(`${appConfig.cmsApiBase}/admin/documents/${id}`);
+}
+
+export async function reorderDocumentItems(ids: string[], fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return { ok: true };
+  }
+
+  return httpPut(`${appConfig.cmsApiBase}/admin/documents/order`, { ids });
+}
+
+export async function saveContactsDraft(contacts: ContactInfo, fallbackContent?: CmsContent) {
+  if (!appConfig.cmsApiBase) {
+    if (fallbackContent) saveLocalContent(fallbackContent);
+    return contacts;
+  }
+
+  return httpPut(`${appConfig.cmsApiBase}/admin/contacts/draft`, contacts);
+}
+
+export async function publishContacts() {
+  if (!appConfig.cmsApiBase) return { ok: true };
+  return httpPost(`${appConfig.cmsApiBase}/admin/contacts/publish`);
+}
+
+export async function fetchMediaAssets(): Promise<MediaAsset[]> {
+  if (!appConfig.cmsApiBase) return [];
+  return httpGet<MediaAsset[]>(`${appConfig.cmsApiBase}/admin/media`);
+}
+
+export async function uploadMediaAsset(file: File): Promise<MediaAsset> {
+  if (!appConfig.cmsApiBase) {
+    throw new Error("Загрузка файлов доступна только при подключенном backend");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  return httpPost<MediaAsset>(`${appConfig.cmsApiBase}/admin/media`, formData);
 }

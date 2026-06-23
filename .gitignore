@@ -8,3 +8,9 @@ legacy_snapshot
 .agents
 .tools
 Caddyfile
+vite.log
+vite.err
+server/server.log
+server/server.err
+server/uploads/*
+!server/uploads/.gitkeep
