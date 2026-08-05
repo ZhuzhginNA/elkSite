@@ -91,6 +91,24 @@ function parseLevel2Id(categoryId: string) {
   return { code1, level2 };
 }
 
+function resolveCodeTypeFromCode1(code1: string) {
+  const numericCode1 = Number(code1);
+  return Number.isFinite(numericCode1) && numericCode1 >= 1 && numericCode1 <= 10 ? "type1" : "type2";
+}
+
+function inferCategoryIdFromRecord(card: Record<string, unknown>) {
+  const code1 = toText(card.CODE1).padStart(2, "0");
+  const code2 = toText(card.CODE2).padStart(2, "0");
+  const code3 = toText(card.CODE3).padStart(2, "0");
+  const codeType = resolveCodeTypeFromCode1(code1);
+  const subgroup = codeType === "type1" ? code3 : code2;
+  if (!code1 || code1 === "00" || !subgroup || subgroup === "00") {
+    return undefined;
+  }
+
+  return level2Id(code1, `${code1}.${subgroup}`);
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -197,6 +215,7 @@ function normalizeRelation(value: unknown): CatalogRelation | null {
     id,
     title,
     available: value.available === undefined ? true : Boolean(value.available),
+    categoryId: optionalText(value.categoryId) || inferCategoryIdFromRecord(value),
     disabledReason: optionalText(value.disabledReason),
   };
 }
@@ -446,6 +465,7 @@ export class CatalogService {
         return {
           id: toId(card.id ?? card.CARDID ?? cardId),
           title: toText(card.title ?? card.CARDDESC) || `Карточка ${cardId}`,
+          code: optionalText(card.code ?? card.full_code ?? card.FULLCODE),
           comment: optionalText(card.comment ?? card.CARDCOMMENT),
           documents,
           zamParts,
@@ -471,6 +491,7 @@ export class CatalogService {
     return {
       id: toId(rawCard.id ?? rawCard.CARDID ?? fallbackId),
       title: toText(rawCard.title ?? rawCard.CARDDESC) || `Карточка ${fallbackId}`,
+      code: optionalText(rawCard.code ?? rawCard.full_code ?? rawCard.FULLCODE),
       comment: optionalText(rawCard.comment ?? rawCard.CARDCOMMENT),
       documents,
       zamParts,
@@ -526,7 +547,65 @@ export class CatalogService {
       throw new NotFoundException("Карточка недоступна на сайте");
     }
 
+    const cardWithCode = await this.withResolvedCardCode(card);
+    return this.withResolvedRelations(cardWithCode, settings);
+  }
+
+  private async withResolvedCardCode(card: SiteCatalogCardDetails): Promise<SiteCatalogCardDetails> {
+    if (card.code || !card.categoryId) {
+      return card;
+    }
+
+    try {
+      const summaries = await this.getPublicCardsByCategory(card.categoryId);
+      const summary = summaries.find((item) => item.id === card.id);
+      if (summary?.code) {
+        return {
+          ...card,
+          code: summary.code,
+        };
+      }
+    } catch {
+      return card;
+    }
+
     return card;
+  }
+
+  private async withResolvedRelations(
+    card: SiteCatalogCardDetails,
+    settings: CatalogSettings,
+  ): Promise<SiteCatalogCardDetails> {
+    if (!card.zamParts.length) {
+      return card;
+    }
+
+    const zamParts = await Promise.all(
+      card.zamParts.map(async (relation) => {
+        const relatedCard = await this.getSiteCardInternal(relation.id).catch(() => null);
+        if (!relatedCard || this.isCategoryHidden(relatedCard.categoryId, settings) || !relatedCard.documents.length) {
+          return {
+            ...relation,
+            available: false,
+            categoryId: undefined,
+            disabledReason: relation.disabledReason || "Недоступно на сайте",
+          };
+        }
+
+        return {
+          ...relation,
+          title: relatedCard.title || relation.title,
+          available: true,
+          categoryId: relatedCard.categoryId,
+          disabledReason: undefined,
+        };
+      }),
+    );
+
+    return {
+      ...card,
+      zamParts,
+    };
   }
 
   private async findPublicDocumentInAvailableCard(documentId: string): Promise<CatalogDocument | null> {
@@ -576,6 +655,7 @@ export class CatalogService {
     return {
       id: card.id,
       title: card.title,
+      code: card.code,
       comment: card.comment,
       documents: card.documents,
       zamParts: card.zamParts,

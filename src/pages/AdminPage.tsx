@@ -46,6 +46,7 @@ import type {
   MediaAsset,
 } from "../shared/types";
 import { ContentState } from "../ui/ContentState";
+import { SystemErrorScreen } from "../ui/SystemScreen";
 
 type AdminSection = "overview" | "pages" | "home" | "catalog" | "blog" | "gallery" | "documents" | "contacts" | "media";
 
@@ -164,23 +165,34 @@ function cloneCatalogSettings(settings: CatalogSettings): CatalogSettings {
   };
 }
 
+const IMAGE_HINTS = {
+  hero: "Поддерживаются JPG, PNG и WebP. Ссылка должна вести прямо на файл изображения. Для широких блоков лучше использовать картинку от 1600x900 px.",
+  card: "Поддерживаются JPG, PNG и WebP. Лучше использовать изображение не меньше 1200x900 px, чтобы карточка выглядела четко на десктопе.",
+  galleryThumb: "Поддерживаются JPG, PNG и WebP. Для миниатюры лучше использовать изображение от 800x600 px с аккуратным кадрированием.",
+  galleryFull: "Поддерживаются JPG, PNG и WebP. Для полноэкранного просмотра лучше использовать изображение от 1600x1200 px.",
+  documentPreview: "Поддерживаются JPG, PNG и WebP. Для превью документа лучше использовать вертикальное изображение от 1200 px по ширине или скрин первой страницы PDF.",
+} as const;
+
 function Field({
   label,
   value,
   onChange,
   placeholder,
   type = "text",
+  hint,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   type?: "text" | "password" | "url" | "date";
+  hint?: string;
 }) {
   return (
     <label className="admin-field">
       <span>{label}</span>
       <input type={type} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+      {hint ? <small className="admin-field__hint">{hint}</small> : null}
     </label>
   );
 }
@@ -317,10 +329,14 @@ function AdminLogin() {
 
 export function AdminPage() {
   const meQuery = useAdminMe();
-  const isAuthorized = Boolean(meQuery.data) && !meQuery.isError;
+  const isAuthorized = Boolean(meQuery.data);
 
   if (meQuery.isLoading) {
     return <ContentState>Проверяем сессию...</ContentState>;
+  }
+
+  if (meQuery.isError) {
+    return <SystemErrorScreen title="Не удалось проверить сессию админки" lead="Сервер авторизации временно недоступен. Попробуйте обновить страницу немного позже." />;
   }
 
   if (!isAuthorized) {
@@ -663,7 +679,11 @@ function AdminWorkspace() {
   }
 
   if (adminContentQuery.isError) {
-    return <ContentState error>Не удалось загрузить CMS: {adminContentQuery.error.message}</ContentState>;
+    return <SystemErrorScreen title="Не удалось открыть админку" lead="Рабочая среда CMS не загрузилась. Попробуйте обновить страницу или войти позже." />;
+  }
+
+  if (section === "catalog" && adminCatalogQuery.isError) {
+    return <SystemErrorScreen title="Не удалось загрузить настройки каталога" lead="Раздел каталога временно недоступен. Попробуйте обновить страницу или открыть его позже." />;
   }
 
   return (
@@ -774,9 +794,6 @@ function AdminWorkspace() {
           <section className="admin-panel">
             {adminCatalogQuery.isLoading || !catalogSettings ? (
               <ContentState>Загружаем настройки каталога...</ContentState>
-            ) : null}
-            {adminCatalogQuery.isError ? (
-              <ContentState error>Не удалось загрузить категории каталога: {adminCatalogQuery.error.message}</ContentState>
             ) : null}
             {!adminCatalogQuery.isLoading && !adminCatalogQuery.isError && catalogSettings ? (
               <>
@@ -908,7 +925,12 @@ function PageEditor({ page, onChange }: { page: CmsPage; onChange: (page: CmsPag
     <div className="admin-form-grid">
       <Field label="Заголовок" value={page.title} onChange={(title) => onChange({ ...page, title })} />
       <Field label="Lead" value={page.lead} onChange={(lead) => onChange({ ...page, lead })} />
-      <Field label="URL изображения" value={page.imageUrl ?? ""} onChange={(imageUrl) => onChange({ ...page, imageUrl })} />
+      <Field
+        label="URL изображения"
+        value={page.imageUrl ?? ""}
+        hint={IMAGE_HINTS.hero}
+        onChange={(imageUrl) => onChange({ ...page, imageUrl })}
+      />
       <Field label="SEO title" value={page.seo.title} onChange={(title) => onChange({ ...page, seo: { ...page.seo, title } })} />
       <TextArea
         label="SEO description"
@@ -946,7 +968,12 @@ function HomeEditor({
             <h3>{card.slug}</h3>
             <Field label="Заголовок" value={card.title} onChange={(title) => patchCard(index, { title })} />
             <TextArea label="Описание" value={card.description} rows={4} onChange={(description) => patchCard(index, { description })} />
-            <Field label="URL изображения" value={card.imageUrl} onChange={(imageUrl) => patchCard(index, { imageUrl })} />
+            <Field
+              label="URL изображения"
+              value={card.imageUrl}
+              hint={IMAGE_HINTS.card}
+              onChange={(imageUrl) => patchCard(index, { imageUrl })}
+            />
           </article>
         ))}
       </div>
@@ -1047,7 +1074,12 @@ function BlogEditor({ post, onChange }: { post: BlogPost; onChange: (post: BlogP
       <Field label="Заголовок" value={post.title} onChange={(title) => onChange({ ...post, title, slug: post.slug || slugify(title) })} />
       <Field label="Slug" value={post.slug} onChange={(slug) => onChange({ ...post, slug })} />
       <Field label="Дата публикации" value={post.publishedAt} onChange={(publishedAt) => onChange({ ...post, publishedAt })} />
-      <Field label="URL изображения" value={post.imageUrl} onChange={(imageUrl) => onChange({ ...post, imageUrl })} />
+      <Field
+        label="URL изображения"
+        value={post.imageUrl}
+        hint={IMAGE_HINTS.hero}
+        onChange={(imageUrl) => onChange({ ...post, imageUrl })}
+      />
       <TextArea label="Краткое описание" value={post.excerpt} rows={4} onChange={(excerpt) => onChange({ ...post, excerpt })} />
       <TextArea label="Теги, каждый с новой строки" value={linesToText(post.tags)} rows={4} onChange={(tags) => onChange({ ...post, tags: textToLines(tags) })} />
       <TextArea label="Текст записи" value={paragraphsToText(post.body)} rows={10} onChange={(body) => onChange({ ...post, body: textToParagraphs(body) })} />
@@ -1062,8 +1094,18 @@ function GalleryEditor({ image, onChange }: { image: GalleryImage; onChange: (im
         {image.imageUrl ? <img src={image.imageUrl} alt={image.title} /> : <span>Превью появится после URL</span>}
       </div>
       <Field label="Название" value={image.title} onChange={(title) => onChange({ ...image, title })} />
-      <Field label="URL миниатюры" value={image.imageUrl} onChange={(imageUrl) => onChange({ ...image, imageUrl })} />
-      <Field label="URL большого изображения" value={image.fullImageUrl ?? ""} onChange={(fullImageUrl) => onChange({ ...image, fullImageUrl })} />
+      <Field
+        label="URL миниатюры"
+        value={image.imageUrl}
+        hint={IMAGE_HINTS.galleryThumb}
+        onChange={(imageUrl) => onChange({ ...image, imageUrl })}
+      />
+      <Field
+        label="URL большого изображения"
+        value={image.fullImageUrl ?? ""}
+        hint={IMAGE_HINTS.galleryFull}
+        onChange={(fullImageUrl) => onChange({ ...image, fullImageUrl })}
+      />
     </div>
   );
 }
@@ -1077,7 +1119,12 @@ function DocumentEditor({ document, onChange }: { document: DocumentItem; onChan
       <Field label="Название" value={document.title} onChange={(title) => onChange({ ...document, title })} />
       <Field label="Категория" value={document.category} onChange={(category) => onChange({ ...document, category })} />
       <Field label="URL файла" value={document.fileUrl} onChange={(fileUrl) => onChange({ ...document, fileUrl })} />
-      <Field label="URL превью" value={document.previewUrl ?? ""} onChange={(previewUrl) => onChange({ ...document, previewUrl })} />
+      <Field
+        label="URL превью"
+        value={document.previewUrl ?? ""}
+        hint={IMAGE_HINTS.documentPreview}
+        onChange={(previewUrl) => onChange({ ...document, previewUrl })}
+      />
       <TextArea label="Описание" value={document.description} rows={5} onChange={(description) => onChange({ ...document, description })} />
     </div>
   );

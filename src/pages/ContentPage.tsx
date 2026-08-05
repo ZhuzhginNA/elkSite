@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { useCmsPage } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
+import { SystemErrorScreen, SystemNotFoundScreen } from "../ui/SystemScreen";
 
 interface ContentPageProps {
   slug: string;
 }
 
 export function ContentPage({ slug }: ContentPageProps) {
-  const { data, isLoading, isError, error } = useCmsPage(slug);
+  const { data, isLoading, isError } = useCmsPage(slug);
 
   useEffect(() => {
     if (!data?.seo) {
@@ -27,11 +28,11 @@ export function ContentPage({ slug }: ContentPageProps) {
   }
 
   if (isError) {
-    return <ContentState error>Не удалось загрузить страницу: {error.message}</ContentState>;
+    return <SystemErrorScreen title="Не удалось открыть страницу" />;
   }
 
   if (!data) {
-    return <ContentState>Страница не найдена.</ContentState>;
+    return <SystemNotFoundScreen />;
   }
 
   return (

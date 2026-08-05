@@ -1,8 +1,13 @@
+import type { ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { primaryNavigation } from "../shared/navigation";
 import { AppFooter } from "./AppFooter";
 
-export function AppLayout() {
+interface SiteFrameProps {
+  children: ReactNode;
+}
+
+export function SiteFrame({ children }: SiteFrameProps) {
   return (
     <div className="site-shell">
       <div className="site-background" />
@@ -31,10 +36,18 @@ export function AppLayout() {
       </header>
 
       <main className="page">
-        <Outlet />
+        {children}
       </main>
 
       <AppFooter />
     </div>
+  );
+}
+
+export function AppLayout() {
+  return (
+    <SiteFrame>
+      <Outlet />
+    </SiteFrame>
   );
 }

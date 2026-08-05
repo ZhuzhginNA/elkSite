@@ -1,5 +1,6 @@
 import { useContacts } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
+import { SystemErrorScreen } from "../ui/SystemScreen";
 
 const DEFAULT_MAP_CENTER = "35.866032%2C56.852814";
 const DEFAULT_MAP_POINT = "35.866110%2C56.852896";
@@ -9,10 +10,14 @@ const DEFAULT_MAP_EXTERNAL_URL = `https://yandex.ru/maps/?ll=${DEFAULT_MAP_CENTE
 const DEFAULT_ROUTE_URL = "https://yandex.ru/maps/?rtext=~56.852896%2C35.866110&rtt=auto";
 
 export function ContactsPage() {
-  const { data, isLoading, isError, error } = useContacts();
+  const { data, isLoading, isError } = useContacts();
   const mapEmbedUrl = data?.mapEmbedUrl ?? DEFAULT_MAP_EMBED_URL;
   const mapExternalUrl = data?.mapExternalUrl ?? DEFAULT_MAP_EXTERNAL_URL;
   const routeUrl = data?.routeUrl ?? DEFAULT_ROUTE_URL;
+
+  if (isError) {
+    return <SystemErrorScreen title="Не удалось открыть контакты" />;
+  }
 
   return (
     <div className="content-shell">
@@ -25,8 +30,6 @@ export function ContactsPage() {
         </div>
 
         {isLoading ? <ContentState>Загружаем контакты...</ContentState> : null}
-        {isError ? <ContentState error>Не удалось загрузить контакты: {error.message}</ContentState> : null}
-
         {data ? (
           <>
             <div className="contacts-summary">

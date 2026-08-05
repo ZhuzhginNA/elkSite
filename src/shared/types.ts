@@ -30,6 +30,7 @@ export interface CatalogRelation {
   id: string;
   title: string;
   available: boolean;
+  categoryId?: string;
   disabledReason?: string;
 }
 
@@ -49,6 +50,7 @@ export interface CatalogCardImage {
 export interface CatalogCardDetails {
   id: string;
   title: string;
+  code?: string;
   comment?: string;
   documents: CatalogDocument[];
   zamParts: CatalogRelation[];

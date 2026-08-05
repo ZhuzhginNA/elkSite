@@ -1,9 +1,14 @@
 import { Link } from "react-router-dom";
 import { useBlogPosts } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
+import { SystemErrorScreen } from "../ui/SystemScreen";
 
 export function BlogPage() {
-  const { data, isLoading, isError, error } = useBlogPosts();
+  const { data, isLoading, isError } = useBlogPosts();
+
+  if (isError) {
+    return <SystemErrorScreen title="Не удалось открыть блог" />;
+  }
 
   return (
     <div className="content-shell">
@@ -14,9 +19,7 @@ export function BlogPage() {
         </div>
 
         {isLoading ? <ContentState>Загружаем блог...</ContentState> : null}
-        {isError ? <ContentState error>Не удалось загрузить блог: {error.message}</ContentState> : null}
-
-        {!isLoading && !isError ? (
+        {!isLoading ? (
           <div className="blog-list">
             {data?.map((post) => (
               <article key={post.id} className="blog-card">

@@ -2,10 +2,11 @@ import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useBlogPosts } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
+import { SystemErrorScreen, SystemNotFoundScreen } from "../ui/SystemScreen";
 
 export function BlogPostPage() {
   const { slug } = useParams();
-  const { data, isLoading, isError, error } = useBlogPosts();
+  const { data, isLoading, isError } = useBlogPosts();
 
   const post = useMemo(() => data?.find((item) => item.slug === slug) ?? null, [data, slug]);
 
@@ -14,11 +15,11 @@ export function BlogPostPage() {
   }
 
   if (isError) {
-    return <ContentState error>Не удалось загрузить статью: {error.message}</ContentState>;
+    return <SystemErrorScreen title="Не удалось открыть статью" />;
   }
 
   if (!post) {
-    return <ContentState>Статья не найдена.</ContentState>;
+    return <SystemNotFoundScreen title="Статья не найдена" lead="Похоже, материал был удален или ссылка на него устарела." />;
   }
 
   return (

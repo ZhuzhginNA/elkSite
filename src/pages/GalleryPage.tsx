@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGalleryImages } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
+import { SystemErrorScreen } from "../ui/SystemScreen";
 
 const GALLERY_PAGE_SIZE = 12;
 const LIGHTBOX_DOT_WINDOW = 7;
 
 export function GalleryPage() {
-  const { data, isLoading, isError, error } = useGalleryImages();
+  const { data, isLoading, isError } = useGalleryImages();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const lightboxRef = useRef<HTMLDivElement | null>(null);
@@ -22,6 +23,10 @@ export function GalleryPage() {
 
   const activeImage = activeIndex !== null ? images[activeIndex] ?? null : null;
   const activePage = activeIndex !== null ? Math.floor(activeIndex / GALLERY_PAGE_SIZE) + 1 : currentPage;
+
+  if (isError) {
+    return <SystemErrorScreen title="Не удалось открыть галерею" />;
+  }
 
   const visibleDots = useMemo(() => {
     if (!images.length || activeIndex === null) {
@@ -134,9 +139,7 @@ export function GalleryPage() {
         </div>
 
         {isLoading ? <ContentState>Загружаем галерею...</ContentState> : null}
-        {isError ? <ContentState error>Не удалось загрузить галерею: {error.message}</ContentState> : null}
-
-        {!isLoading && !isError ? (
+        {!isLoading ? (
           <>
             <div className="gallery-grid">
               {visibleImages.map((item, index) => {

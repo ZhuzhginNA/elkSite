@@ -1,16 +1,17 @@
 import { Link } from "react-router-dom";
 import { useCmsContent } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
+import { SystemErrorScreen } from "../ui/SystemScreen";
 
 export function HomePage() {
-  const { data, isLoading, isError, error } = useCmsContent();
+  const { data, isLoading, isError } = useCmsContent();
 
   if (isLoading) {
     return <ContentState>Загружаем главную страницу...</ContentState>;
   }
 
   if (isError) {
-    return <ContentState error>Не удалось загрузить главную: {error.message}</ContentState>;
+    return <SystemErrorScreen title="Не удалось открыть главную страницу" />;
   }
 
   const homePage = data.pages.home;

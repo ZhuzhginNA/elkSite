@@ -18,6 +18,63 @@ function cloneContent(content: CmsContent): CmsContent {
   return JSON.parse(JSON.stringify(content)) as CmsContent;
 }
 
+function resolveCmsAssetUrl(url?: string | null) {
+  if (!url) return url ?? "";
+  if (!appConfig.cmsApiBase) return url;
+  if (/^https?:\/\//i.test(url) || /^data:/i.test(url) || /^blob:/i.test(url)) return url;
+
+  const cmsOrigin = appConfig.cmsApiBase.replace(/\/api\/?$/, "");
+  if (url.startsWith("/uploads/")) {
+    return `${cmsOrigin}${url}`;
+  }
+
+  if (url.startsWith("uploads/")) {
+    return `${cmsOrigin}/${url}`;
+  }
+
+  return url;
+}
+
+function normalizeCmsContentAssets(content: CmsContent): CmsContent {
+  return {
+    ...content,
+    pages: Object.fromEntries(
+      Object.entries(content.pages).map(([slug, page]) => [
+        slug,
+        {
+          ...page,
+          imageUrl: resolveCmsAssetUrl(page.imageUrl),
+        },
+      ]),
+    ),
+    homeCards: content.homeCards.map((card) => ({
+      ...card,
+      imageUrl: resolveCmsAssetUrl(card.imageUrl),
+    })),
+    galleryImages: content.galleryImages.map((image) => ({
+      ...image,
+      imageUrl: resolveCmsAssetUrl(image.imageUrl),
+      fullImageUrl: resolveCmsAssetUrl(image.fullImageUrl),
+    })),
+    documents: content.documents.map((document) => ({
+      ...document,
+      fileUrl: resolveCmsAssetUrl(document.fileUrl),
+      previewUrl: resolveCmsAssetUrl(document.previewUrl),
+    })),
+    blogPosts: content.blogPosts.map((post) => ({
+      ...post,
+      imageUrl: resolveCmsAssetUrl(post.imageUrl),
+    })),
+    contacts: {
+      ...content.contacts,
+      mapImageUrl: resolveCmsAssetUrl(content.contacts.mapImageUrl),
+      mapFullImageUrl: resolveCmsAssetUrl(content.contacts.mapFullImageUrl),
+      officeImageUrl: resolveCmsAssetUrl(content.contacts.officeImageUrl),
+      officeFullImageUrl: resolveCmsAssetUrl(content.contacts.officeFullImageUrl),
+    },
+  };
+}
+
 function readLocalContent(): CmsContent {
   const fallback = createDefaultCmsContent();
 
@@ -98,7 +155,7 @@ export async function fetchCmsContent(): Promise<CmsContent> {
     return cloneContent(readLocalContent());
   }
 
-  return httpGet<CmsContent>(`${appConfig.cmsApiBase}/content`);
+  return normalizeCmsContentAssets(await httpGet<CmsContent>(`${appConfig.cmsApiBase}/content`));
 }
 
 export async function fetchAdminContent(): Promise<CmsContent> {
@@ -106,7 +163,7 @@ export async function fetchAdminContent(): Promise<CmsContent> {
     return cloneContent(readLocalContent());
   }
 
-  return httpGet<CmsContent>(`${appConfig.cmsApiBase}/admin/content`);
+  return normalizeCmsContentAssets(await httpGet<CmsContent>(`${appConfig.cmsApiBase}/admin/content`));
 }
 
 export async function fetchCmsPage(slug: string): Promise<CmsPage | null> {
@@ -164,7 +221,32 @@ export async function fetchAdminMe() {
     return login ? { login, role: "LOCAL_ADMIN" } : null;
   }
 
-  return httpGet<{ sub: string; login: string; role: string }>(`${appConfig.cmsApiBase}/auth/me`);
+  const response = await fetch(`${appConfig.cmsApiBase}/auth/me`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (response.status === 401) {
+    return null;
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  const isJson = contentType.includes("application/json");
+  const payload = isJson ? await response.json() : await response.text();
+
+  if (!response.ok) {
+    const message =
+      typeof payload === "string"
+        ? payload
+        : (payload as { message?: string })?.message || "Request failed";
+
+    throw new Error(message);
+  }
+
+  return payload as { sub: string; login: string; role: string };
 }
 
 export async function logoutAdmin() {
@@ -334,7 +416,11 @@ export async function publishContacts() {
 
 export async function fetchMediaAssets(): Promise<MediaAsset[]> {
   if (!appConfig.cmsApiBase) return [];
-  return httpGet<MediaAsset[]>(`${appConfig.cmsApiBase}/admin/media`);
+  const assets = await httpGet<MediaAsset[]>(`${appConfig.cmsApiBase}/admin/media`);
+  return assets.map((asset) => ({
+    ...asset,
+    url: resolveCmsAssetUrl(asset.url),
+  }));
 }
 
 export async function uploadMediaAsset(file: File): Promise<MediaAsset> {

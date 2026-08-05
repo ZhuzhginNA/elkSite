@@ -1,8 +1,13 @@
 import { useDocuments } from "../features/cms/hooks";
 import { ContentState } from "../ui/ContentState";
+import { SystemErrorScreen } from "../ui/SystemScreen";
 
 export function DocumentsPage() {
-  const { data, isLoading, isError, error } = useDocuments();
+  const { data, isLoading, isError } = useDocuments();
+
+  if (isError) {
+    return <SystemErrorScreen title="Не удалось открыть документы" />;
+  }
 
   return (
     <div className="content-shell">
@@ -13,9 +18,7 @@ export function DocumentsPage() {
         </div>
 
         {isLoading ? <ContentState>Загружаем документы...</ContentState> : null}
-        {isError ? <ContentState error>Не удалось загрузить документы: {error.message}</ContentState> : null}
-
-        {!isLoading && !isError ? (
+        {!isLoading ? (
           <div className="stack-list">
             {data?.map((item) => (
               <article key={item.id} className="document-card">
